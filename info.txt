@@ -1,5 +1,5 @@
 
-Criar o projeto: dotnet web -n <nome do projeto>
+Criar o projeto: dotnet new web -n <nome do projeto>
 
 Startar projto: dotnet run ou dotnet watch run
 
@@ -10,5 +10,7 @@ Pomelo.EntityFrameworkCore.MySql.
 apos configuração do contexto e string de conexão
 
 Criar migrations: dotnet ef migrations add AdministradorMigration
+persistir no banco de dados: dotnet ef database update
 
-Criar o banco de dados: dotnet ef database update
+criando seed: dotnet ef migrations add SeedAdministrador
+persistir no banco de dados: dotnet ef database update
