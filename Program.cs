@@ -44,7 +44,6 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
 #endregion
 
 #region Veiculos
-#endregion
 app.MapPost("/veiculos", ([FromBody] VeiculoDTO veiculoDTO, IVeiculoServico veiculoServico) => {
 
     var veiculo = new Veiculo {
@@ -59,6 +58,35 @@ app.MapPost("/veiculos", ([FromBody] VeiculoDTO veiculoDTO, IVeiculoServico veic
 
 
 });
+
+app.MapGet("/veiculos", ([FromQuery] int? pagina, IVeiculoServico veiculoServico) =>
+{
+    // Se a página não for informada, retorna todos os registros
+    if (!pagina.HasValue)
+    {
+        var todosVeiculos = veiculoServico.Todos(null); // ou outro método para listar todos
+        return Results.Ok(todosVeiculos);
+    }
+
+    // Verifique se a página informada é válida
+    if (pagina < 1)
+    {
+        return Results.BadRequest("Não existem viculos serem listados.");
+    }
+
+    var veiculosPaginados = veiculoServico.Todos(pagina.Value);
+
+    if (veiculosPaginados == null || !veiculosPaginados.Any())
+    {
+        return Results.NotFound("Pagina não encontrada.");
+    }
+
+    return Results.Ok(veiculosPaginados);
+});
+
+
+#endregion
+
 #region App
 app.UseSwagger();
 app.UseSwaggerUI();

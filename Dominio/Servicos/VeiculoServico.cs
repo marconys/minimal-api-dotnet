@@ -1,4 +1,5 @@
 
+using System.Reflection.Metadata.Ecma335;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using MinimalApi.Dominio.Entidades;
@@ -39,22 +40,26 @@ public class VeiculoServico : IVeiculoServico
         _contexto.SaveChanges();
     }
 
-   public List<Veiculo> Todos(int pagina = 1, string? nome = null, string? marca = null)
+  public List<Veiculo> Todos(int? pagina = null, string? nome = null, string? marca = null)
 {
-    // Declare query como IQueryable<Veiculo>
-    IQueryable<Veiculo> query = _contexto.Veiculos;
+    var query = _contexto.Veiculos.AsQueryable();
 
     if (!string.IsNullOrEmpty(nome))
-        query = query.Where(v => v.Nome.ToLower().Contains(nome.ToLower()));
+    {
+        query = query.Where(v => EF.Functions.Like(v.Nome.ToLower(), $"%{nome}%"));
+    }
 
-    if (!string.IsNullOrEmpty(marca))
-        query = query.Where(v => v.Marca.ToLower().Contains(marca.ToLower()));
+    // Se a página for null, retorna todos os veículos sem paginação
+    if (!pagina.HasValue)
+    {
+        return query.ToList();
+    }
 
-    // Exemplo de paginação
-    int pageSize = 10;
-    return query.Skip((pagina - 1) * pageSize)
-                .Take(pageSize)
-                .ToList(); // Executa a consulta no banco de dados e retorna a lista
+    int itensPorPagina = 10;
+    query = query.Skip((pagina.Value - 1) * itensPorPagina).Take(itensPorPagina);
+
+    return query.ToList();
 }
+
 
 }
