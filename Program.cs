@@ -41,6 +41,68 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
         return Results.Unauthorized();
 }).WithTags("Administradores");
 
+app.MapPost("/administradores/inserir", ([FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) => {
+    
+    var validacao = new ErrosDeValidacao {
+        Mensages = new List<string>()
+    };
+
+    if(string.IsNullOrEmpty(administradorDTO.Email))
+        validacao.Mensages.Add("Email não pode ser vazio");
+
+    if(string.IsNullOrEmpty(administradorDTO.Senha))
+        validacao.Mensages.Add("Senha não pode ser vazia"); 
+
+    if(administradorDTO.Perfil == null)
+        validacao.Mensages.Add("Perfil não pode ser vazio");       
+
+    
+    var administrador = new Administrador {
+        Email = administradorDTO.Email,
+        Senha = administradorDTO.Senha,
+        Perfil = administradorDTO.Perfil.ToString()!
+    };
+
+    administradorServico.Incluir(administrador);
+
+    return Results.Created($"/administrador/{administrador.Id}", new AdministradorModelView {
+            Id = administrador.Id,
+            Email = administrador.Email,
+            Perfil = administrador.Perfil
+        });
+
+}).WithTags("Administradores");
+
+app.MapGet("/administradores/todos", ([FromQuery] int? pagina, IAdministradorServico administradorServico) => {
+    
+    var adms = new List<AdministradorModelView>();
+
+    var administradores = administradorServico.Todos(pagina);
+
+    foreach (var adm in administradores)
+    {
+        adms.Add(new AdministradorModelView {
+            Id = adm.Id,
+            Email = adm.Email,
+            Perfil = adm.Perfil
+        });
+    }
+    return Results.Ok(adms);
+
+}).WithTags("Administradores");
+
+app.MapGet("/administradores/{id}", ([FromRoute] int id, IAdministradorServico administradorServico) =>
+{
+    var administrador = administradorServico.BuscarPorId(id);
+    
+    return administrador == null ? Results.NotFound("Administrador não encontrado") : Results.Ok(new AdministradorModelView {
+            Id = administrador.Id,
+            Email = administrador.Email,
+            Perfil = administrador.Perfil
+        });
+
+}).WithTags("Administradores");
+
 #endregion
 
 #region Veiculos
